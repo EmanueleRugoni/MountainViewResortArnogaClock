@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arnoga Mountain View Resort &amp; Spa – Reception</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brown:#282524; --cream:#fffcf6; --gold:#f2b705;
+    --ink:var(--brown); --ink-soft:#5a5552;
+    --halo:drop-shadow(0 0 .35vmin rgba(255,250,240,.95)) drop-shadow(0 0 2.2vmin rgba(255,250,240,.65));
+    --text-glow:0 0 .4em rgba(255,250,240,.95), 0 0 1.2em rgba(255,250,240,.7);
+    --plate:rgba(255,253,249,.74);
+    --fade:2s;
+    box-sizing:border-box;
+  }
+  /* variante logo chiaro: lettere bianche e ombra scura */
+  body.chiaro{
+    --ink:var(--cream); --ink-soft:#eeeae4;
+    --halo:drop-shadow(0 .2vmin .5vmin rgba(20,12,8,.55)) drop-shadow(0 0 2.5vmin rgba(20,12,8,.35));
+    --text-glow:0 .08em .3em rgba(20,12,8,.7), 0 0 1em rgba(20,12,8,.4);
+    --plate:rgba(24,22,21,.48);
+  }
+  *,*::before,*::after{ box-sizing:inherit; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:#2b241f;
+    color:var(--ink);
+    font-family:"Quicksand","Century Gothic","Avenir Next",system-ui,sans-serif;
+    overflow:hidden; user-select:none; -webkit-user-select:none;
+  }
+  body.idle, body.idle *{ cursor:none !important; }
+
+  /* ---- slideshow ---- */
+  .slides{ position:fixed; inset:0; overflow:hidden; background:linear-gradient(160deg,#5b4a3d,#2b241f); }
+  .slide{
+    position:absolute; inset:0;
+    background-size:cover; background-position:center;
+    opacity:0; transform:scale(1);
+    transition:opacity var(--fade) ease-in-out;
+    will-change:opacity,transform;
+  }
+  .slide.on{ opacity:1; }
+
+  /* ---- contenuto sopra le foto ---- */
+  .stage{
+    position:relative; z-index:1;
+    width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:clamp(10px,3.5vh,48px);
+    padding:calc(4vh + env(safe-area-inset-top,0px)) 4vw calc(4vh + env(safe-area-inset-bottom,0px));
+  }
+  .logo{ width:min(66vw, 125vh); }
+  .logo svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .logo image{ filter:var(--halo); }
+  .face{ filter:drop-shadow(0 0 1.2vmin rgba(20,12,8,.25)); }
+
+  .info{
+    display:flex; flex-direction:column; align-items:center; gap:clamp(6px,1.4vh,18px); text-align:center;
+    background:var(--plate); -webkit-backdrop-filter:blur(10px) saturate(1.1); backdrop-filter:blur(10px) saturate(1.1);
+    border-radius:clamp(14px,2.4vmin,32px);
+    padding:clamp(10px,2vh,26px) clamp(18px,3.4vw,56px);
+  }
+  .date{ margin:0; font-weight:600; font-size:clamp(20px, min(4vh, 4.2vw), 60px); letter-spacing:.02em; }
+  .rule{ width:clamp(60px,10vw,180px); height:2px; border:0; margin:0; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  .weather{
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+    column-gap:clamp(18px,3vw,60px); row-gap:8px;
+    font-size:clamp(15px, min(2.6vh, 2.8vw), 38px); font-weight:500;
+  }
+  .weather[hidden]{ display:none; }
+  .now{ display:flex; align-items:center; gap:.45em; }
+  .now .temp{ font-size:1.7em; font-weight:600; line-height:1; }
+  .icon{ width:1.6em; height:1.6em; flex:none; }
+  .icon *{ fill:none; stroke:var(--gold); stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
+  .day{ display:flex; align-items:center; gap:.4em; color:var(--ink-soft); }
+  .day b{ font-weight:700; color:var(--ink); }
+  .day .icon{ width:1.25em; height:1.25em; }
+  .place{ font-size:.62em; color:var(--ink-soft); letter-spacing:.03em; }
+
+  .note{
+    position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); z-index:2;
+    transform:translateX(-50%);
+    background:rgba(40,37,36,.88); color:#f6ead2; font-size:15px; text-shadow:none;
+    padding:9px 16px; border-radius:999px; max-width:92vw; text-align:center;
+    opacity:0; transition:opacity .6s ease; pointer-events:none;
+  }
+  .note.show{ opacity:1; }
+  #second{ filter:drop-shadow(0 2px 2px rgba(40,37,36,.25)); }
+  @media (prefers-reduced-motion: reduce){ .note{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="slides" aria-hidden="true">
+  <div class="slide" id="slideA"></div>
+  <div class="slide" id="slideB"></div>
+</div>
+
+<main class="stage">
+  <div class="logo">
+    <svg viewBox="0 0 2325 873" role="img" aria-labelledby="t">
+      <title id="t">Logo Arnoga Mountain View Resort &amp; Spa con orologio nell'anello dorato</title>
+      <defs>
+        <radialGradient id="faceGrad" cx=".5" cy=".45" r=".55">
+          <stop offset="0" stop-color="#ffffff"/><stop offset=".9" stop-color="#fbfaf7"/><stop offset="1" stop-color="#efece6"/>
+        </radialGradient>
+      </defs>
+      <image id="logoImg" href="logo.png" x="0" y="0" width="2325" height="873"/>
+      <g transform="translate(1366.5 265.5) scale(0.9025)">
+        <circle class="face" r="238" fill="url(#faceGrad)"/>
+          <rect x="-6" y="-224" width="12" height="40" rx="3" fill="#282524" transform="rotate(0)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(6)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(12)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(18)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(24)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(30)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(36)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(42)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(48)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(54)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(60)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(66)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(72)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(78)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(84)"/>
+          <rect x="-6" y="-224" width="12" height="40" rx="3" fill="#282524" transform="rotate(90)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(96)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(102)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(108)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(114)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(120)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(126)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(132)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(138)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(144)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(150)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(156)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(162)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(168)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(174)"/>
+          <rect x="-6" y="-224" width="12" height="40" rx="3" fill="#282524" transform="rotate(180)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(186)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(192)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(198)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(204)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(210)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(216)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(222)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(228)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(234)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(240)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(246)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(252)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(258)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(264)"/>
+          <rect x="-6" y="-224" width="12" height="40" rx="3" fill="#282524" transform="rotate(270)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(276)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(282)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(288)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(294)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(300)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(306)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(312)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(318)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(324)"/>
+          <rect x="-4" y="-224" width="8" height="28" rx="3" fill="#282524" transform="rotate(330)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(336)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(342)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(348)"/>
+          <rect x="-1.5" y="-222" width="3" height="12" fill="#282524" opacity=".45" transform="rotate(354)"/>
+        <g id="hour"><path d="M-9 30 L-6 -118 Q0 -132 6 -118 L9 30 Z" fill="#282524"/></g>
+        <g id="minute"><path d="M-6 34 L-4 -178 Q0 -190 4 -178 L6 34 Z" fill="#282524"/></g>
+        <g id="second">
+          <rect x="-2.5" y="-200" width="5" height="250" rx="2.5" fill="#e3a900"/>
+          <circle cy="40" r="9" fill="#e3a900"/>
+        </g>
+        <polygon points="0.0,-30.0 3.4,-8.3 21.2,-21.2 8.3,-3.4 30.0,0.0 8.3,3.4 21.2,21.2 3.4,8.3 0.0,30.0 -3.4,8.3 -21.2,21.2 -8.3,3.4 -30.0,0.0 -8.3,-3.4 -21.2,-21.2 -3.4,-8.3" fill="#ffce27" stroke="#c99a00" stroke-width="1.5"/>
+        <circle r="5" fill="#282524"/>
+      </g>
+    </svg>
+  </div>
+
+  <section class="info" aria-live="polite">
+    <p class="date" id="date"></p>
+    <hr class="rule">
+    <div class="weather" id="weather" hidden>
+      <div class="now">
+        <svg class="icon" id="nowIcon" viewBox="0 0 32 32" aria-hidden="true"></svg>
+        <span class="temp" id="nowTemp"></span>
+        <span><span id="nowText"></span><br><span class="place">Arnoga, 1870 m</span></span>
+      </div>
+      <div class="day"><span>Oggi</span><b id="todayRange"></b></div>
+      <div class="day"><span>Domani</span><svg class="icon" id="tomIcon" viewBox="0 0 32 32" aria-hidden="true"></svg><b id="tomRange"></b></div>
+    </div>
+  </section>
+</main>
+<div class="note" id="note"></div>
+
+<script>
+/* ======================= IMPOSTAZIONI ======================= */
+var CONFIG = {
+  CARTELLA:      'slideshow/', // cartella delle foto (jpg, jpeg, png)
+  DURATA_FOTO:   10,           // secondi di permanenza di ogni foto
+  DISSOLVENZA:   2,            // secondi della dissolvenza incrociata
+  ZOOM:          1.06,         // zoom finale (1.06 = +6%, molto leggero)
+  CASUALE:       false,        // true = ordine casuale, false = ordine alfabetico
+  RILEGGI_MIN:   5,            // ogni quanti minuti ricontrollare la cartella
+  LOGO:          'originale',  // 'originale' (lettere scure) oppure 'chiaro' (lettere bianche)
+  FUSO:          'Europe/Rome',
+  LAT: 46.498, LON: 10.225, QUOTA: 1870, // Arnoga
+  METEO_MIN:     15
+};
+/* ============================================================ */
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var note = document.getElementById('note');
+  function showNote(txt, ms) {
+    note.textContent = txt; note.classList.add('show');
+    clearTimeout(showNote.t);
+    if (ms) showNote.t = setTimeout(function () { note.classList.remove('show'); }, ms);
+  }
+  function hideNote() { note.classList.remove('show'); }
+
+  /* ---- variante logo ---- */
+  if (CONFIG.LOGO === 'chiaro') {
+    document.body.classList.add('chiaro');
+    document.getElementById('logoImg').setAttribute('href', 'logo-chiaro.png');
+  }
+  document.documentElement.style.setProperty('--fade', CONFIG.DISSOLVENZA + 's');
+
+  /* ======================= SLIDESHOW ======================= */
+  var IMG_RE = /\.(jpe?g|png)$/i;
+  function clean(list) {
+    var seen = {}, out = [];
+    (list || []).forEach(function (n) {
+      n = String(n).split('/').pop().split('?')[0];
+      try { n = decodeURIComponent(n); } catch (e) {}
+      if (IMG_RE.test(n) && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out.push(n); }
+    });
+    return out.sort(function (a, b) { return a.localeCompare(b, 'it', { numeric: true, sensitivity: 'base' }); });
+  }
+  function fromScript() {           // slideshow/elenco.js  (funziona anche aprendo il file dal disco)
+    return new Promise(function (ok) {
+      var s = document.createElement('script');
+      s.src = CONFIG.CARTELLA + 'elenco.js?t=' + Date.now();
+      s.onload = function () { s.remove(); ok(window.SLIDESHOW || []); };
+      s.onerror = function () { s.remove(); ok([]); };
+      document.head.appendChild(s);
+    });
+  }
+  function fromPhp() {              // slideshow/elenco.php (su un server con PHP)
+    return fetch(CONFIG.CARTELLA + 'elenco.php?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); });
+  }
+  function fromListing() {          // indice della cartella generato dal server web
+    return fetch(CONFIG.CARTELLA, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        return [].map.call(doc.querySelectorAll('a[href]'), function (a) { return a.getAttribute('href'); });
+      });
+  }
+  function loadList() {
+    var web = /^https?:$/.test(location.protocol);
+    var chain = web
+      ? fromPhp().then(clean).then(function (l) { if (!l.length) throw 0; return l; })
+          .catch(function () { return fromListing().then(clean).then(function (l) { if (!l.length) throw 0; return l; }); })
+          .catch(function () { return fromScript().then(clean); })
+      : fromScript().then(clean);
+    return chain.catch(function () { return []; });
+  }
+
+  var layers = [document.getElementById('slideA'), document.getElementById('slideB')];
+  var front = 0, list = [], order = [], pos = 0, timer = null, lastLoad = 0;
+
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function buildOrder() { order = CONFIG.CASUALE ? shuffle(list) : list.slice(); pos = 0; }
+
+  function preload(src) {
+    return new Promise(function (ok, ko) {
+      var im = new Image();
+      im.onload = function () { (im.decode ? im.decode() : Promise.resolve()).then(function () { ok(src); }, function () { ok(src); }); };
+      im.onerror = ko;
+      im.src = src;
+    });
+  }
+
+  function show(src) {
+    var next = layers[1 - front], prev = layers[front];
+    next.style.transition = 'none';
+    next.style.transform = 'scale(1)';
+    next.style.backgroundImage = 'url("' + src.replace(/"/g, '%22') + '")';
+    void next.offsetWidth;                                  // riparte da zoom 1
+    var total = CONFIG.DURATA_FOTO + CONFIG.DISSOLVENZA * 2;
+    next.style.transition = 'opacity ' + CONFIG.DISSOLVENZA + 's ease-in-out' +
+      (reduce ? '' : ', transform ' + total + 's linear');
+    next.classList.add('on');
+    if (!reduce) next.style.transform = 'scale(' + CONFIG.ZOOM + ')';
+    prev.classList.remove('on');
+    front = 1 - front;
+  }
+
+  function step(tries) {
+    tries = tries || 0;
+    if (!order.length) return;
+    if (pos >= order.length) buildOrder();
+    var name = order[pos++];
+    preload(CONFIG.CARTELLA + encodeURIComponent(name))
+      .then(function (src) { show(src); schedule(CONFIG.DURATA_FOTO * 1000); })
+      .catch(function () { if (tries < order.length) step(tries + 1); else schedule(5000); });
+  }
+  function schedule(ms) {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (Date.now() - lastLoad > CONFIG.RILEGGI_MIN * 60000) refresh(); else step();
+    }, ms);
+  }
+  function refresh() {
+    lastLoad = Date.now();
+    return loadList().then(function (l) {
+      var changed = l.join('|') !== list.join('|');
+      list = l;
+      if (!list.length) {
+        layers.forEach(function (x) { x.classList.remove('on'); });
+        showNote('Nessuna foto trovata: aggiungi file JPG o PNG nella cartella "slideshow".');
+        schedule(30000); return;
+      }
+      hideNote();
+      if (changed || !order.length) buildOrder();
+      step();
+    });
+  }
+  refresh();
+
+  /* ======================= OROLOGIO ======================= */
+  var h = document.getElementById('hour'), m = document.getElementById('minute'), s = document.getElementById('second');
+  var fmt = new Intl.DateTimeFormat('en-GB', { timeZone: CONFIG.FUSO, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+  function parts(d) { var o = {}; fmt.formatToParts(d).forEach(function (p) { o[p.type] = +p.value; }); return o; }
+  function drawClock() {
+    var d = new Date(), p = parts(d);
+    var sec = p.second + (reduce ? 0 : d.getMilliseconds() / 1000);
+    var min = p.minute + sec / 60, hr = (p.hour % 12) + min / 60;
+    s.setAttribute('transform', 'rotate(' + sec * 6 + ')');
+    m.setAttribute('transform', 'rotate(' + min * 6 + ')');
+    h.setAttribute('transform', 'rotate(' + hr * 30 + ')');
+  }
+  drawClock();
+  if (reduce) setInterval(drawClock, 1000); else (function loop() { drawClock(); requestAnimationFrame(loop); })();
+
+  /* ======================= DATA ======================= */
+  var dateEl = document.getElementById('date');
+  var dfmt = new Intl.DateTimeFormat('it-IT', { timeZone: CONFIG.FUSO, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  function drawDate() { var t = dfmt.format(new Date()); t = t.charAt(0).toUpperCase() + t.slice(1); if (dateEl.textContent !== t) dateEl.textContent = t; }
+  drawDate(); setInterval(drawDate, 30000);
+
+  /* ======================= METEO (Open-Meteo) ======================= */
+  var ICONS = {
+    sun:   '<circle cx="16" cy="16" r="5.5"/><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"/>',
+    moon:  '<path d="M21.5 20.5A9 9 0 0 1 12 6.2a9.5 9.5 0 1 0 13.6 11.6 9 9 0 0 1-4.1 2.7z"/>',
+    part:  '<circle cx="12" cy="11" r="4.5"/><path d="M12 2.5v2M4.5 11h-2M6.6 5.6l-1.4-1.4M17.4 5.6l1.4-1.4"/><path d="M10 26h13a5 5 0 0 0 0-10 7 7 0 0 0-13.3 2.3A4 4 0 0 0 10 26z"/>',
+    cloud: '<path d="M9 25h14a6 6 0 0 0 0-12 8 8 0 0 0-15.4 2.6A4.7 4.7 0 0 0 9 25z"/>',
+    fog:   '<path d="M8 17h14a5 5 0 0 0 0-10 7 7 0 0 0-13.4 2.2A4 4 0 0 0 8 17z"/><path d="M5 22h22M8 27h16"/>',
+    rain:  '<path d="M9 20h14a5.5 5.5 0 0 0 0-11 7.5 7.5 0 0 0-14.4 2.4A4.3 4.3 0 0 0 9 20z"/><path d="M11 23l-1.5 4M17 23l-1.5 4M23 23l-1.5 4"/>',
+    snow:  '<path d="M9 19h14a5.5 5.5 0 0 0 0-11 7.5 7.5 0 0 0-14.4 2.4A4.3 4.3 0 0 0 9 19z"/><path d="M10 24v4M8 26h4M16 23v4M14 25h4M22 24v4M20 26h4"/>',
+    storm: '<path d="M9 19h14a5.5 5.5 0 0 0 0-11 7.5 7.5 0 0 0-14.4 2.4A4.3 4.3 0 0 0 9 19z"/><path d="M17 20l-4 6h5l-3 5"/>'
+  };
+  function describe(c, day) {
+    if (c === 0) return [day ? 'sun' : 'moon', 'Sereno'];
+    if (c === 1) return [day ? 'sun' : 'moon', 'Prevalentemente sereno'];
+    if (c === 2) return ['part', 'Parzialmente nuvoloso'];
+    if (c === 3) return ['cloud', 'Coperto'];
+    if (c === 45 || c === 48) return ['fog', 'Nebbia'];
+    if (c >= 51 && c <= 57) return ['rain', 'Pioviggine'];
+    if (c >= 61 && c <= 67) return ['rain', 'Pioggia'];
+    if (c >= 71 && c <= 77) return ['snow', 'Neve'];
+    if (c >= 80 && c <= 82) return ['rain', 'Rovesci'];
+    if (c === 85 || c === 86) return ['snow', 'Rovesci di neve'];
+    if (c >= 95) return ['storm', 'Temporale'];
+    return ['cloud', ''];
+  }
+  function deg(v) { return Math.round(v) + '°'; }
+  function loadWeather() {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + CONFIG.LAT + '&longitude=' + CONFIG.LON + '&elevation=' + CONFIG.QUOTA +
+      '&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=' +
+      encodeURIComponent(CONFIG.FUSO) + '&forecast_days=2';
+    fetch(url).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
+      var c = describe(d.current.weather_code, d.current.is_day === 1), t = describe(d.daily.weather_code[1], true);
+      document.getElementById('nowIcon').innerHTML = ICONS[c[0]];
+      document.getElementById('nowTemp').textContent = deg(d.current.temperature_2m);
+      document.getElementById('nowText').textContent = c[1];
+      document.getElementById('todayRange').textContent = deg(d.daily.temperature_2m_min[0]) + ' / ' + deg(d.daily.temperature_2m_max[0]);
+      document.getElementById('tomIcon').innerHTML = ICONS[t[0]];
+      document.getElementById('tomRange').textContent = deg(d.daily.temperature_2m_min[1]) + ' / ' + deg(d.daily.temperature_2m_max[1]);
+      document.getElementById('weather').hidden = false;
+    }).catch(function () {});
+  }
+  loadWeather(); setInterval(loadWeather, CONFIG.METEO_MIN * 60000);
+
+  /* ======================= KIOSK ======================= */
+  var idle;
+  function wake() { document.body.classList.remove('idle'); clearTimeout(idle); idle = setTimeout(function () { document.body.classList.add('idle'); }, 3000); }
+  ['mousemove', 'mousedown', 'touchstart', 'keydown'].forEach(function (e) { addEventListener(e, wake, { passive: true }); });
+  wake();
+  function toggleFs() {
+    if (!document.fullscreenElement) { var el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); }
+    else if (document.exitFullscreen) document.exitFullscreen();
+  }
+  addEventListener('dblclick', toggleFs);
+  addEventListener('keydown', function (e) { if (e.key === 'f' || e.key === 'F') toggleFs(); });
+  setTimeout(function () { if (!document.fullscreenElement && !note.classList.contains('show')) showNote('Doppio clic per lo schermo intero', 5000); }, 800);
+  function keepAwake() { if ('wakeLock' in navigator && document.visibilityState === 'visible') navigator.wakeLock.request('screen').catch(function () {}); }
+  document.addEventListener('visibilitychange', keepAwake); keepAwake();
+})();
+</script>
+</body>
+</html>
